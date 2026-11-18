@@ -1,0 +1,334 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://villa-os.local/schemas/site-schema.json",
+  "title": "Villa OS site mapping (sites/<site_id>.yaml)",
+  "description": "Maps canonical device names (the same in every villa) to this villa's Home Assistant entity_ids. Never put secrets in this file.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "site_id",
+    "display_name",
+    "timezone",
+    "devices"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "site_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "maxLength": 40,
+      "description": "Lowercase id, e.g. villa-0. Must match the file name."
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "timezone": {
+      "type": "string",
+      "pattern": "^[A-Za-z]+(/[A-Za-z_]+)+$",
+      "default": "Europe/Athens"
+    },
+    "devices": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "patternProperties": {
+        "^leak_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(binary_sensor)\\.",
+                  "description": "leak: Home Assistant domain must be binary_sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^door_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(binary_sensor)\\.",
+                  "description": "door: Home Assistant domain must be binary_sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^temp_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(sensor)\\.",
+                  "description": "temp: Home Assistant domain must be sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^humidity_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(sensor)\\.",
+                  "description": "humidity: Home Assistant domain must be sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^power_main$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(binary_sensor|sensor)\\.",
+                  "description": "power_main: Home Assistant domain must be binary_sensor or sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^battery_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(sensor)\\.",
+                  "description": "battery: Home Assistant domain must be sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^ac_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(climate)\\.",
+                  "description": "ac: Home Assistant domain must be climate",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^light_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(light|switch)\\.",
+                  "description": "light: Home Assistant domain must be light or switch",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^plug_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(switch)\\.",
+                  "description": "plug: Home Assistant domain must be switch",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^lock_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(lock)\\.",
+                  "description": "lock: Home Assistant domain must be lock",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^smoke_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(binary_sensor)\\.",
+                  "description": "smoke: Home Assistant domain must be binary_sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^noise_[a-z][a-z0-9]*(_[a-z0-9]+)*$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(sensor)\\.",
+                  "description": "noise: Home Assistant domain must be sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        },
+        "^internet_backup$": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/device"
+            },
+            {
+              "properties": {
+                "entity_id": {
+                  "pattern": "^(binary_sensor)\\.",
+                  "description": "internet_backup: Home Assistant domain must be binary_sensor",
+                  "type": "string"
+                },
+                "allow_commands": {
+                  "const": false,
+                  "description": "Sensors can never receive commands",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_id"
+      ],
+      "properties": {
+        "entity_id": {
+          "type": "string",
+          "pattern": "^[a-z_]+\\.[a-z0-9_]+$"
+        },
+        "critical": {
+          "type": "boolean",
+          "default": false,
+          "description": "Problems with this device are urgent"
+        },
+        "allow_commands": {
+          "type": "boolean",
+          "default": false,
+          "description": "Cloud may send whitelisted commands to this device (Prompt 6). Default false."
+        }
+      }
+    }
+  }
+}

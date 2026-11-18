@@ -1,0 +1,158 @@
+{
+  "$comment": "Closed list of canonical device types. Source of truth together with site-schema.json. Copies live in agent/ and backend/; `make sync-schema` updates them and tests check they are identical.",
+  "name_part_pattern": "[a-z][a-z0-9]*(_[a-z0-9]+)*",
+  "types": {
+    "leak": {
+      "pattern": "leak_<room>",
+      "domains": [
+        "binary_sensor"
+      ],
+      "device_classes": [
+        "moisture"
+      ],
+      "unit": null,
+      "meaning": "on = water detected",
+      "commandable": false
+    },
+    "door": {
+      "pattern": "door_<name>",
+      "domains": [
+        "binary_sensor"
+      ],
+      "device_classes": [
+        "door",
+        "window",
+        "garage_door",
+        "opening"
+      ],
+      "unit": null,
+      "meaning": "on = open",
+      "commandable": false
+    },
+    "temp": {
+      "pattern": "temp_<room>",
+      "domains": [
+        "sensor"
+      ],
+      "device_classes": [
+        "temperature"
+      ],
+      "unit": "°C",
+      "meaning": "temperature in °C",
+      "commandable": false
+    },
+    "humidity": {
+      "pattern": "humidity_<room>",
+      "domains": [
+        "sensor"
+      ],
+      "device_classes": [
+        "humidity"
+      ],
+      "unit": "%",
+      "meaning": "relative humidity in %",
+      "commandable": false
+    },
+    "power_main": {
+      "pattern": "power_main",
+      "domains": [
+        "binary_sensor",
+        "sensor"
+      ],
+      "device_classes": [
+        "power",
+        "plug"
+      ],
+      "unit": null,
+      "meaning": "off = mains power lost",
+      "commandable": false
+    },
+    "battery": {
+      "pattern": "battery_<device>",
+      "domains": [
+        "sensor"
+      ],
+      "device_classes": [
+        "battery"
+      ],
+      "unit": "%",
+      "meaning": "battery level in %",
+      "commandable": false
+    },
+    "ac": {
+      "pattern": "ac_<room>",
+      "domains": [
+        "climate"
+      ],
+      "device_classes": [],
+      "unit": null,
+      "meaning": "air conditioner",
+      "commandable": true
+    },
+    "light": {
+      "pattern": "light_<name>",
+      "domains": [
+        "light",
+        "switch"
+      ],
+      "device_classes": [],
+      "unit": null,
+      "meaning": "light",
+      "commandable": true
+    },
+    "plug": {
+      "pattern": "plug_<name>",
+      "domains": [
+        "switch"
+      ],
+      "device_classes": [],
+      "unit": null,
+      "meaning": "smart plug",
+      "commandable": true
+    },
+    "lock": {
+      "pattern": "lock_<name>",
+      "domains": [
+        "lock"
+      ],
+      "device_classes": [],
+      "unit": null,
+      "meaning": "door lock",
+      "commandable": true
+    },
+    "smoke": {
+      "pattern": "smoke_<room>",
+      "domains": [
+        "binary_sensor"
+      ],
+      "device_classes": [
+        "smoke"
+      ],
+      "unit": null,
+      "meaning": "on = smoke detected",
+      "commandable": false
+    },
+    "noise": {
+      "pattern": "noise_<room>",
+      "domains": [
+        "sensor"
+      ],
+      "device_classes": [
+        "sound_pressure"
+      ],
+      "unit": "dB",
+      "meaning": "noise level in dB",
+      "commandable": false
+    },
+    "internet_backup": {
+      "pattern": "internet_backup",
+      "domains": [
+        "binary_sensor"
+      ],
+      "device_classes": [],
+      "unit": null,
+      "meaning": "on = running on 4G backup",
+      "commandable": false
+    }
+  }
+}

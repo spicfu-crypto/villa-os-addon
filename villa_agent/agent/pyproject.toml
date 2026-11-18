@@ -1,0 +1,41 @@
+[project]
+name = "villa-agent"
+version = "0.0.1"
+description = "Villa OS agent: runs next to Home Assistant and sends selected state to the cloud."
+requires-python = ">=3.12"
+dependencies = [
+  "websockets>=13,<18",
+  "pyyaml>=6,<7",
+  "jsonschema>=4.22,<5",
+  "aiomqtt>=2.3,<3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "ruff>=0.6"]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+villa_agent = ["schema/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S603", "S607", "E501"]

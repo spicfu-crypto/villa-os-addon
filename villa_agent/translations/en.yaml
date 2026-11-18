@@ -1,0 +1,11 @@
+configuration:
+  site_id: { name: Site id, description: "e.g. villa-1 (from make add-site)" }
+  mqtt_host: { name: Broker address, description: The Villa OS server }
+  mqtt_port: { name: Broker port, description: "Usually 8883" }
+  mqtt_username: { name: Broker username }
+  mqtt_password: { name: Broker password }
+  mqtt_ca: { name: Broker CA certificate, description: Paste the whole block printed by make add-site }
+  site_file: { name: Site file (optional), description: "Leave empty to use /config/villa_os/<site_id>.yaml" }
+  commands_enabled: { name: Allow commands, description: "Kill switch. Off = Villa OS can only watch, never switch anything." }
+  command_secret: { name: Command secret, description: From make add-site }
+  log_level: { name: Log level }
