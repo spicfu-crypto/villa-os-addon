@@ -92,6 +92,56 @@ def cmd_run(args: argparse.Namespace) -> int:
     return run_main()
 
 
+def cmd_autosite(args: argparse.Namespace) -> int:
+    """Write a ready site file from Home Assistant (used by the HA app on start)."""
+    import yaml
+
+    from villa_agent.discover import auto_site, entities_from_states
+
+    ha_url = os.environ.get("HA_URL", "").strip()
+    if not ha_url:
+        print("HA_URL is not set.", file=sys.stderr)
+        return 2
+    entities = entities_from_states(asyncio.run(_fetch_states(ha_url, _token())))
+    data = auto_site(args.site_id, args.display_name or args.site_id, entities)
+    if not data["devices"]:
+        print(
+            "No supported devices found in Home Assistant (temperature, humidity, doors, "
+            "leaks, smoke, lights, plugs, air conditioners...).",
+            file=sys.stderr,
+        )
+        return 3
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    header = (
+        f"# Made automatically from Home Assistant for {args.site_id}.\n"
+        "# To choose the devices yourself, copy this file to /config/villa_os/"
+        f"{args.site_id}.yaml, edit it, and restart the app.\n"
+    )
+    out.write_text(header + yaml.safe_dump(data, allow_unicode=True, sort_keys=False), "utf-8")
+    counts: dict[str, int] = {}
+    for canonical in data["devices"]:
+        kind = canonical.split("_", 1)[0]
+        counts[kind] = counts.get(kind, 0) + 1
+    summary = ", ".join(f"{n} {k}" for k, n in sorted(counts.items()))
+    print(f"Found {len(data['devices'])} devices: {summary}")
+    return 0
+
+
+def cmd_connection_env(args: argparse.Namespace) -> int:
+    """Read a connection code on stdin, write the CA file, print shell exports."""
+    from villa_agent.connection import ConnectionCodeError, decode, shell_exports
+
+    try:
+        c = decode(sys.stdin.read())
+    except ConnectionCodeError as e:
+        print(f"Connection code problem: {e}", file=sys.stderr)
+        return 2
+    Path(args.ca_out).write_text(c.ca.strip() + "\n", "utf-8")
+    sys.stdout.write(shell_exports(c, args.ca_out))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="villa_agent", description="Villa OS agent")
     parser.add_argument("--version", action="version", version=f"villa_agent {__version__}")
@@ -108,6 +158,16 @@ def build_parser() -> argparse.ArgumentParser:
     v.add_argument("site_file", help="e.g. sites/villa-0.yaml")
     v.add_argument("--ha-url", help="also check against this live Home Assistant")
     v.set_defaults(func=cmd_validate)
+
+    a = sub.add_parser("autosite", help="write a ready site file from Home Assistant")
+    a.add_argument("--site-id", required=True)
+    a.add_argument("--display-name")
+    a.add_argument("--out", required=True)
+    a.set_defaults(func=cmd_autosite)
+
+    ce = sub.add_parser("connection-env", help="decode a connection code (stdin) for run.sh")
+    ce.add_argument("--ca-out", required=True)
+    ce.set_defaults(func=cmd_connection_env)
 
     r = sub.add_parser("run", help="run the agent (configuration from environment variables)")
     r.set_defaults(func=cmd_run)

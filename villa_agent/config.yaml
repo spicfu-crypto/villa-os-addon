@@ -1,9 +1,9 @@
 name: Villa Agent
 # Versions are released on purpose. Home Assistant never updates an add-on by itself
 # unless you turn on "auto update" for it: leave that OFF for this add-on.
-version: "1.0.0"
+version: "1.1.0"
 slug: villa_agent
-description: Sends this house's selected sensors to Villa OS. Read-only unless you turn commands on.
+description: Connects this house to Villa OS with one connection code. Read-only unless you turn commands on.
 url: https://github.com/spicfu-crypto/villa-os-addon
 arch:
   - aarch64
@@ -13,30 +13,17 @@ startup: application
 boot: auto
 # The Supervisor gives the add-on a token for Home Assistant: no manual token needed.
 homeassistant_api: true
-# Read-only access to the Home Assistant config folder, for villa_os/<site_id>.yaml
+# Read-only access to the Home Assistant config folder: an optional villa_os/<site_id>.yaml
+# lets you choose the devices yourself; without it the app picks them automatically.
 map:
   - type: homeassistant_config
     read_only: true
 # No ports: the agent only connects OUT (to Home Assistant and to the Villa OS broker).
 options:
-  site_id: ""
-  mqtt_host: ""
-  mqtt_port: 8883
-  mqtt_username: ""
-  mqtt_password: ""
-  mqtt_ca: ""
-  site_file: ""
+  connection_code: ""
   commands_enabled: false
-  command_secret: ""
   log_level: INFO
 schema:
-  site_id: match(^[a-z0-9]+(-[a-z0-9]+)*$)
-  mqtt_host: str
-  mqtt_port: port
-  mqtt_username: str
-  mqtt_password: password
-  mqtt_ca: str
-  site_file: str?
+  connection_code: password
   commands_enabled: bool
-  command_secret: password?
   log_level: list(DEBUG|INFO|WARNING|ERROR)

@@ -1,11 +1,4 @@
 configuration:
-  site_id: { name: Κωδικός βίλας, description: "π.χ. villa-1 (από το make add-site)" }
-  mqtt_host: { name: Διεύθυνση server, description: Ο server του Villa OS }
-  mqtt_port: { name: Θύρα, description: "Συνήθως 8883" }
-  mqtt_username: { name: Όνομα χρήστη }
-  mqtt_password: { name: Κωδικός }
-  mqtt_ca: { name: Πιστοποιητικό (CA), description: Επικόλλησε όλο το κομμάτι που έδωσε το make add-site }
-  site_file: { name: Αρχείο βίλας (προαιρετικό), description: "Κενό = /config/villa_os/<site_id>.yaml" }
+  connection_code: { name: Κωδικός σύνδεσης, description: "Η μεγάλη γραμμή που αρχίζει με VOS1. από το Villa OS. Επικόλλησέ την ολόκληρη." }
   commands_enabled: { name: Επιτρέπονται εντολές, description: "Διακόπτης ασφαλείας. Κλειστό = το Villa OS μόνο βλέπει, δεν αλλάζει τίποτα." }
-  command_secret: { name: Μυστικό εντολών, description: Από το make add-site }
   log_level: { name: Επίπεδο καταγραφής }

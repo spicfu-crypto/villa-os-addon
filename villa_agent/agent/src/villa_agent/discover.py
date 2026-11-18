@@ -176,6 +176,42 @@ def render_draft(
     return "\n".join(lines) + "\n"
 
 
+def auto_site(
+    site_id: str, display_name: str, entities: list[Entity], timezone: str = "Europe/Athens"
+) -> dict[str, Any]:
+    """A ready-to-use site mapping built from Home Assistant, with no human review.
+
+    Used by the Home Assistant app when the villa has no site file yet. Every suggested
+    device is checked on its own and skipped if it does not pass the schema, so one odd
+    entity never blocks the villa. Commands stay off for every device (read-only).
+    """
+    from villa_agent.site import validate_data
+
+    mapping, _ = suggest_mapping(entities)
+    devices: dict[str, dict[str, Any]] = {}
+    for canonical in sorted(mapping):
+        dev = {
+            "entity_id": mapping[canonical].entity_id,
+            "critical": canonical.startswith(("leak_", "smoke_")),
+        }
+        trial = {
+            "schema_version": 1,
+            "site_id": site_id,
+            "display_name": display_name,
+            "timezone": timezone,
+            "devices": {canonical: dev},
+        }
+        if not validate_data(trial):
+            devices[canonical] = dev
+    return {
+        "schema_version": 1,
+        "site_id": site_id,
+        "display_name": display_name,
+        "timezone": timezone,
+        "devices": devices,
+    }
+
+
 # ---------------------------------------------------------------- live validation
 
 
