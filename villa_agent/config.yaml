@@ -1,7 +1,7 @@
 name: Villa Agent
 # Versions are released on purpose. Home Assistant never updates an add-on by itself
 # unless you turn on "auto update" for it: leave that OFF for this add-on.
-version: "1.1.0"
+version: "1.2.0"
 slug: villa_agent
 description: Connects this house to Villa OS with one connection code. Read-only unless you turn commands on.
 url: https://github.com/spicfu-crypto/villa-os-addon

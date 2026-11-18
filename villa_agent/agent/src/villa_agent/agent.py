@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hashlib
 import json
 import logging
 import random
@@ -111,6 +112,42 @@ class Backoff:
         return delay
 
 
+INVENTORY_MAX = 300
+
+
+def entity_ref(entity_id: str) -> str:
+    return hashlib.sha256(entity_id.encode()).hexdigest()[:16]
+
+
+def inventory_items(states: list[dict[str, Any]], used: dict[str, Any]) -> list[dict[str, Any]]:
+    """Supported entities not used by this villa yet (never people, phones or zones)."""
+    from villa_agent.discover import entities_from_states, suggest_mapping
+
+    entities = [e for e in entities_from_states(states) if e.entity_id not in used]
+    mapping, _ = suggest_mapping(entities)
+    by_state = {s.get("entity_id"): s for s in states if isinstance(s, dict)}
+    items = []
+    for canonical, e in sorted(mapping.items(), key=lambda kv: kv[1].entity_id):
+        st = by_state.get(e.entity_id) or {}
+        items.append(
+            {
+                # entity_ids never leave the villa: Villa OS refers to it by this ref,
+                # which only the agent can map back.
+                "ref": entity_ref(e.entity_id),
+                # Without a friendly name, HA's object id (not the full entity_id).
+                "name": (
+                    e.friendly_name
+                    if e.friendly_name != e.entity_id
+                    else e.object_id.replace("_", " ")
+                )[:120],
+                "suggested": canonical[:80],
+                "state": None if st.get("state") is None else str(st.get("state"))[:255],
+                "unit": e.unit[:20] if e.unit else None,
+            }
+        )
+    return items
+
+
 class Agent:
     def __init__(
         self, cfg: AgentConfig, site: Site, outbox: Outbox, gate: CommandGate | None = None
@@ -124,6 +161,7 @@ class Agent:
         self._by_entity = site.by_entity_id()
         self._states: dict[str, dict[str, Any]] = {}  # entity_id -> latest HA state
         self._last_sent: dict[str, tuple[Any, ...]] = {}  # canonical -> fingerprint
+        self._inventory_fp: str | None = None
         self.connected_to_ha = False
         self.connected_to_mqtt = False
         self.ha_version: str | None = None
@@ -153,7 +191,9 @@ class Agent:
         """Queue a message. Never raises: a full or broken disk must not stop the agent."""
         try:
             msg = {**self._envelope(kind, self.outbox.next_seq()), **body}
-            self.outbox.put(self.topic(kind), msg, replace_topic=(kind == "snapshot"))
+            self.outbox.put(
+                self.topic(kind), msg, replace_topic=(kind in ("snapshot", "inventory"))
+            )
         except sqlite3.Error as e:
             self.enqueue_failures += 1
             log.error(
@@ -171,6 +211,17 @@ class Agent:
             self._last_sent[d.canonical] = _fingerprint(v)
             devices.append({**v, "critical": d.critical, "allow_commands": d.allow_commands})
         self.enqueue("snapshot", {"devices": devices})
+
+    def publish_inventory(self, states: list[dict[str, Any]], *, force: bool = False) -> bool:
+        """Send the supported Home Assistant entities that this villa does NOT use yet, so
+        Villa OS can show "new device". Sent on connect and when the list changes."""
+        items = inventory_items(states, self._by_entity)
+        fingerprint = json.dumps(items, sort_keys=True)
+        if not force and fingerprint == self._inventory_fp:
+            return False
+        self._inventory_fp = fingerprint
+        self.enqueue("inventory", {"unused": items[:INVENTORY_MAX], "unused_total": len(items)})
+        return True
 
     def on_state_changed(self, event: dict[str, Any]) -> None:
         data = event.get("data")
@@ -247,6 +298,7 @@ class Agent:
                     backoff.connected()
                     log.info("connected to Home Assistant", extra={"ha_version": self.ha_version})
                     self.publish_snapshot()
+                    self.publish_inventory(states, force=True)
                     watchdog = asyncio.create_task(self._ha_watchdog(ha))
                     try:
                         async for ev in ha.events():
@@ -431,6 +483,12 @@ class Agent:
                     self.publish_snapshot()  # only real data: no snapshot while HA is down
                 except Exception:
                     log.exception("snapshot failed")
+                ha = self._ha
+                if ha is not None and self.connected_to_ha:
+                    try:
+                        self.publish_inventory(await ha.get_states())
+                    except Exception:
+                        log.warning("inventory skipped this time", exc_info=True)
 
     async def heartbeat_loop(self) -> None:
         while not self._stop.is_set():
